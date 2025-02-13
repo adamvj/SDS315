@@ -1,0 +1,327 @@
+---
+title: "Homework 3 - SDS315"
+author: "Adam Jose - avj423"
+date: "2025-02-13 - \n\n https://github.com/adamvj/SDS315"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+# Global options
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, tidy = TRUE, fig.width=8, fig.height=6)
+```
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(mosaic)
+library(kableExtra)
+
+# Function to create box plots
+create_box_plot <- function(data, x, y, title) {
+  ggplot(data, aes_string(x = x, y = y)) +
+    geom_boxplot(fill = "lightblue", color = "darkblue") +
+    labs(title = title, x = "", y = "Price ($)") +
+    theme_minimal()
+}
+
+# Load dataset
+gas <- read.csv("gasprices.csv")
+```
+
+# Problem 1
+
+#### Part A: Gas stations charge more if they lack direct competition in sight
+```{r}
+boot_comp <- do(10000) * diffmean(Price ~ Competitors, data = mosaic::resample(gas))
+confint(boot_comp)
+
+ggplot(gas, aes(x = Competitors, y = Price)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Gas Prices by Competition", x = "Competition", y = "Price ($)") +
+  theme_minimal()
+```
+Evidence:
+The contrast in means between gas stations that are competitive and are not competitive is approximately -0.05526 and 0.00756 based on the bootstrap confidence interval. This means that there is no strong evidence that can be used to argue that gas stations that are not competitive are more costly, since the interval includes zero.
+Conclusion:
+Theory A is refuted by the evidence. The confidence interval indicates that the price difference due to competition is not statistically significant.
+
+\newpage
+
+#### Part B: The richer the area, the higher the gas prices
+```{r}
+median_income <- median(gas$Income, na.rm = TRUE)
+gas <- gas %>%
+  mutate(High_Income = ifelse(Income > median_income, "Yes", "No"))
+
+boot_inc <- do(10000) * diffmean(Price ~ High_Income, data = resample(gas))
+confint(boot_inc)
+
+ggplot(gas, aes(x = High_Income, y = Price)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Gas Prices by Income Level", x = "Income Level Higher Than Median", y = "Price ($)") +
+  theme_minimal()
+```
+Evidence:
+Bootstrap confidence interval for the difference in means between high and low-income areas is -0.01118 to 0.05283. This includes zero so uncertain.
+Conclusion:
+Theory B is partially supported but with huge uncertainty. The interval suggests a positive relationship but not sure.
+\newpage
+
+#### Part C: Gas stations at stoplights charge more
+```{r}
+boot_stop <- do(10000) * diffmean(Price ~ Stoplight, data = resample(gas))
+confint(boot_stop)
+
+ggplot(gas, aes(x = factor(Stoplight), y = Price)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Gas Prices by Stoplight", x = "Stoplight", y = "Price ($)") +
+  theme_minimal()
+```
+Evidence:
+Bootstrap confidence interval for the difference in means between stations at stoplights and not at stoplights is -0.03799 to 0.03035. This includes zero so no significant difference.
+Conclusion:
+Theory C is unsupported. The interval says the difference due to stoplight location is not significant.
+\newpage
+
+#### Part D: Gas stations with direct highway access charge more
+```{r}
+boot_high <- do(10000) * diffmean(Price ~ Highway, data = resample(gas))
+confint(boot_high)
+
+ggplot(gas, aes(x = factor(Highway), y = Price)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Gas Prices by Highway Access", x = "Highway Access", y = "Price ($)") +
+  theme_minimal()
+```
+Evidence:
+Bootstrap confidence interval for the difference in means between stations with and without highway access is 0.00927 to 0.08109. This suggests a positive relationship so stations with highway access may charge more.
+Conclusion:
+Theory D is supported. The interval says the difference is statistically significant.
+\newpage
+
+#### Part E: Shell charges more than all other non-Shell brands
+```{r}
+shell_gas <- gas %>%
+  mutate(Station_Type = ifelse(Brand == "Shell", "Shell", "Non-Shell"))
+
+boot_type <- do(10000) * diffmean(Price ~ Station_Type, data = resample(shell_gas))
+confint(boot_type)
+
+ggplot(shell_gas, aes(x = Station_Type, y = Price)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Gas Prices: Shell vs Non-Shell", x = "Station Type", y = "Price ($)") +
+  theme_minimal()
+
+```
+Evidence:
+Bootstrap confidence interval for the difference in means between Shell and non-Shell stations is -0.00922 to 0.06510. This includes zero so uncertain.
+Conclusion:
+Theory E is partially supported but with huge uncertainty. The interval suggests a positive difference for Shell but not sure.
+
+##### Summary
+In summary, only Theory D is strongly supported, gas stations with direct highway access charge more. Theories A and C are not supported, B and E are partially supported but with huge uncertainty.
+
+\newpage
+
+# Problem 2
+
+### Part A
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(mosaic)
+
+# Read the dataset
+class <- read.csv("sclass.csv")
+
+# Filter the dataset for the year 2011 and trim "63 AMG"
+class_filtered <- class %>%
+  filter(year == 2011, trim == "63 AMG") %>%
+  mutate(Car_Status = ifelse(condition == "Used", "Used", "Unused"))
+
+# Create a box plot to compare mileage
+ggplot(class_filtered, aes(x = Car_Status, y = mileage)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Mileage Comparison: Used vs Unused Cars", x = "Car Status", y = "Mileage") +
+  theme_minimal()
+
+# Bootstrap confidence interval for the difference in means
+boot_mileage <- do(10000) * diffmean(mileage ~ Car_Status, data = resample(class_filtered))
+confint(boot_mileage)
+
+```
+The mean mileage bootstrap confidence interval is in the range -1006.924~ 9667.017 (the percentile estimate  4268.3716). This very long interval demonstrates a wide range of mileage between the vehicles.
+The analysis shows that there is a considerable variation in terms of mileage of 2011 S-Class 63 AMGs and an extensive variability of possible mean mileage values. This indicates that cars have been driven in a different way such that the large variation of mileage has occurred.
+
+### Part B
+```{r}
+# Filter the dataset for the year 2014 and trim "550"
+class_filtered2 <- class %>%
+  filter(year == 2014, trim == "550") %>%
+  mutate(isBlack = ifelse(color == "Black", TRUE, FALSE))
+
+# Create a bar plot to show proportion of black cars
+ggplot(class_filtered2, aes(x = factor(isBlack), fill = factor(isBlack))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Proportion of Black Cars", x = "Is Black", y = "Count") +
+  scale_fill_manual(values = c("darkgreen", "darkorange")) +
+  theme_minimal()
+
+# Bootstrap confidence interval for the proportion of black cars
+boot_class <- do(10000) * prop(isBlack ~ 1, data = resample(class_filtered2))
+confint(boot_class)
+
+```
+A 95% bootstrap confidence interval calculates the black car proportion to fall between 0.4164071 and 0.4524057, with a percentile estimate of 0.43475257. The interval represents a tightly constrained set of potential proportions. The examination indicates that about 41.6% to 45. A mere 2% of the 2014 S-Class 550s received black paint jobs while the central estimate hovered near 43. Five percent. Black emerges as a favored color option among buyers for this model year yet it shares its popularity with other dominant colors.
+
+
+# Problem 3
+
+### Part A
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(mosaic)
+
+# Read the dataset
+nbc <- read.csv("nbc_pilotsurvey.csv")
+
+# Filter the dataset for the shows "Living with Ed" and "My Name is Earl"
+nbc_shows <- nbc %>%
+  filter(Show == "Living with Ed" | Show == "My Name is Earl")
+
+# Create a box plot to compare happiness
+ggplot(nbc_shows, aes(x = Show, y = Q1_Happy)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Happiness Comparison: Living with Ed vs My Name is Earl", x = "Show", y = "Happiness") +
+  theme_minimal()
+
+# Bootstrap confidence interval for the difference in means
+boot_nbc_show <- do(10000) * diffmean(Q1_Happy ~ Show, data = resample(nbc_shows))
+confint(boot_nbc_show)
+
+```
+Question:
+Who makes people happier: Ed or Earl?
+Approach:
+Construct a 95% confidence interval for the difference in mean viewer response to the Q1_Happy question.
+Results/ Conclusion: 
+The interval representing 95% confidence for mean happiness rating differences spans values from -0. 3937103 and 0. 1028241, with a percentile estimate of -0. 1490515. The presence of zero within this interval indicates that happiness ratings for the two shows do not differ significantly. Definitive proof remains absent regarding any show’s ability to consistently elevate viewer happiness above others. The presence of zero within the confidence interval suggests that statistical analysis fails to show a significant difference in happiness ratings between "Living with Ed" and "My Name is Earl." 
+
+
+### Part B
+```{r}
+# Filter the dataset for the shows "The Biggest Loser" and "The Apprentice: Los Angeles"
+nbc_shows2 <- nbc %>%
+  filter(Show == "The Biggest Loser" | Show == "The Apprentice: Los Angeles")
+
+# Create a box plot to compare annoyance
+ggplot(nbc_shows2, aes(x = Show, y = Q1_Annoyed)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Annoyance Comparison: The Biggest Loser vs The Apprentice: Los Angeles", x = "Show", y = "Annoyance") +
+  theme_minimal()
+
+# Bootstrap confidence interval for the difference in means
+boot_nbc_show2 <- do(10000) * diffmean(Q1_Annoyed ~ Show, data = resample(nbc_shows2))
+confint(boot_nbc_show2)
+
+```
+Question: 
+Which reality/contest show made people feel more annoyed?
+Approach: 
+Construct a 95% confidence interval for the difference in mean viewer response to the Q1_Annoyed question.
+Results/ Conclusion:
+The calculated 95% confidence interval for mean annoyance rating differences extends to -0. 5212148 and -0. 02414235, with a percentile estimate of -0. 270997. The exclusion of zero from this interval indicates a statistically significant difference. "The Biggest Loser" generates greater annoyance than "The Apprentice: Los Angeles" according to available evidence. Zero is absent from the confidence interval which marks the annoyance rating disparity between the two shows as statistically significant. 
+
+
+### Part C
+```{r}
+# Filter the dataset for the show "Dancing with the Stars"
+nbc_shows3 <- nbc %>%
+  filter(Show == "Dancing with the Stars") %>%
+  mutate(new_Q2 = ifelse(Q2_Confusing >= 4, 1, 0))
+
+# Create a bar plot to show proportion of viewers who found the show confusing
+ggplot(nbc_shows3, aes(x = factor(new_Q2), fill = factor(new_Q2))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Proportion of Viewers Confused by Dancing with the Stars", x = "Confused", y = "Count") +
+  scale_fill_manual(values = c("darkgreen", "darkorange")) +
+  theme_minimal()
+
+# Bootstrap confidence interval for the proportion
+boot_nbc_show3 <- do(10000) * prop(new_Q2 ~ 1, data = resample(nbc_shows3))
+confint(boot_nbc_show3)
+
+```
+Question: 
+What proportion of American TV watchers would we expect to give a response of 4 or greater to the "Q2_Confusing" question?
+Approach: 
+Form a large-sample 95% confidence interval for this proportion.
+Results/ Conclusion: 
+The 95% confidence interval for the proportion of viewers who find "Dancing with the Stars" confusing is between 0.03867403 and 0.1160221, with a percentile estimate of 0.07734807. It is between 3.9% and 11.6% of viewers that will be confused by "Dancing with the Stars," with a midpoint of 7.7%. This shows that while there exists a small minority of viewers confused by the show, the rest are not.
+
+# Problem 4
+
+### Part A
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(mosaic)
+
+# Read the dataset
+ebay <- read.csv("ebay.csv")
+
+# Calculate the revenue ratio (after-to-before) for each DMA
+ebay <- ebay %>%
+  mutate(rev_ratio = rev_after / rev_before)
+
+# Create a box plot to compare revenue ratios
+ggplot(ebay, aes(x = factor(adwords_pause), y = rev_ratio)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Revenue Ratio Comparison: Adwords Pause vs Active", x = "Adwords Status", y = "Revenue Ratio") +
+  theme_minimal()
+
+# Bootstrap confidence interval for the difference in means
+boot_ebay <- do(10000) * diffmean(rev_ratio ~ adwords_pause, data = resample(ebay))
+confint(boot_ebay)
+
+```
+Question:
+Does EBay's paid advertising on Google generate additional revenue, as shown by the difference in revenue ratios between treatment and control DMAs?
+Approach:
+Calculate the difference in revenue ratios between the treatment and control groups using a 95% bootstrap confidence interval.
+Results:
+The 95% confidence interval for the difference in revenue ratios ranges from -0.09023338 to -0.01374467, with a percentile estimate of -0.0522814511. This interval excludes zero pointing to a significant difference.
+Conclusion:
+The data indicates that EBay's paid advertising on Google brings in extra revenue. The confidence interval shows that the revenue ratio is lower in the treatment group compared to the control group, which means that the lack of paid advertising leads to lower relative revenue.
+
+### Part B
+```{r}
+# Calculate the proportion of DMAs where revenue increased
+ebay_increase <- ebay %>%
+  mutate(increase = ifelse(rev_ratio > 1, TRUE, FALSE))
+
+# Create a bar plot to show the proportion of DMAs with increased revenue
+ggplot(ebay_increase, aes(x = factor(adwords_pause), fill = factor(increase))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Proportion of DMAs with Increased Revenue", x = "Adwords Status", y = "Count") +
+  scale_fill_manual(values = c("darkgreen", "darkorange")) +
+  theme_minimal()
+
+# Bootstrap confidence interval for the proportion
+boot_ebay_increase <- do(10000) * prop(increase ~ adwords_pause, data = resample(ebay_increase))
+confint(boot_ebay_increase)
+
+```
+Question:
+How many DMAs saw higher revenue after stopping paid advertising?
+Approach:
+To find out, we'll create a 95% confidence interval for the share of DMAs that had more revenue after they stopped paid ads.
+Results:
+Here's what we found:
+prop_TRUE.0: The range is 0.24489796 to 0.3921631, with a middle estimate of 0.3181818.
+prop_TRUE.1: The range is 0.06896552 to 0.2600000, with a middle estimate of 0.160714312.
+Conclusion:
+The data shows that about 31.8% of DMAs (prop_TRUE.0) and 16.1% of DMAs (prop_TRUE.1) made more money when they stopped paid ads. This means a good number of DMAs saw their revenue go up under these conditions.
+
