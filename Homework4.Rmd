@@ -1,0 +1,255 @@
+---
+title: "Homework 4 - SDS315"
+author: "Adam Jose - avj423"
+date: "2025-02-19 - \n\n https://github.com/adamvj/SDS315"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+# Global options
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, tidy = TRUE, fig.width=8, fig.height=6)
+```
+
+# Problem 1
+
+
+1. **Define the Null Hypothesis**: The null hypothesis $$H_0$$
+is that the trades from the Iron Bank are flagged at the same baseline rate of $$2.4\%$$
+ as other traders.
+
+2. **Test Statistic**: The test statistic we will use is the number of trades flagged by the SEC's algorithm. We are interested in determining if the observed number of flagged trades (70 out of 2021) is significantly higher than what would be expected under the null hypothesis.
+
+3. **Monte Carlo Simulation**: We will perform a Monte Carlo simulation to estimate the probability distribution of the test statistic under the null hypothesis and calculate the p-value.
+
+4. **Plot the Distribution**: We will plot the probability distribution of the test statistic to visualize how likely it is to observe 70 or more flagged trades under the null hypothesis.
+
+5. **Calculate the p-value**: The p-value represents the probability of observing a test statistic at least as extreme as the one observed (70 flagged trades) assuming that the null hypothesis is true.
+
+
+```{r}
+library(ggplot2)
+n_trades <- 2021
+baseline_rate <- 0.024
+n_simulations <- 100000
+observed_flagged <- 70
+set.seed(123)
+simulated_flagged <- rbinom(n_simulations, n_trades, baseline_rate)
+
+p_value <- sum(simulated_flagged >= observed_flagged) / n_simulations
+
+print(paste("The p-value is:", round(p_value, 4)))
+
+df <- data.frame(simulated_flagged)
+ggplot(df, aes(x = simulated_flagged)) +
+  geom_histogram(bins = 30, color = "black", fill = "lightblue") +
+  labs(title = "Distribution of Simulated Flagged Trades",
+       subtitle = "Under the Null Hypothesis",
+       x = "Number of Flagged Trades",
+       y = "Frequency") +
+  geom_vline(xintercept = observed_flagged, color = "red", size = 1.5) +
+  theme_classic()
+
+```
+The red line on the histogram indicates the observed number of flagged trades (70).
+
+**Conclusion**: Since the p-value is very small (0.002), it suggests that the observed data are unlikely under the null hypothesis, indicating that the Iron Bank's trades may be flagged at a significantly higher rate than the baseline.
+
+\newpage
+
+# Problem 2
+
+## Null Hypothesis
+The null hypothesis $$H_0$$ is that the health code violation rate for Gourmet Bites is the same as the citywide average of $$3 \%$$
+.
+
+## Test Statistic
+The test statistic we will use is the number of health code violations observed during inspections of Gourmet Bites.
+
+## Monte Carlo Simulation
+We will perform a Monte Carlo simulation to estimate the probability distribution of the test statistic under the null hypothesis and calculate the p-value.
+
+## Parameters
+- Total inspections of Gourmet Bites: $$50$$
+- Observed health code violations: $$
+8$$
+- Baseline violation rate: $$
+3 \%$$
+- Number of simulations: $$
+100,000$$
+```{r}
+library(ggplot2)
+
+n_inspections <- 50
+observed_violations <- 8
+baseline_rate <- 0.03
+n_simulations <- 100000
+set.seed(123)
+simulated_violations <- rbinom(n_simulations, n_inspections, baseline_rate)
+
+p_value <- sum(simulated_violations >= observed_violations) / n_simulations
+
+print(paste("The p-value is:", round(p_value, 4)))
+
+df <- data.frame(simulated_violations)
+ggplot(df, aes(x = simulated_violations)) +
+  geom_histogram(bins = 10, color = "black", fill = "lightblue") +
+  labs(title = "Distribution of Simulated Health Code Violations",
+       subtitle = "Under the Null Hypothesis",
+       x = "Number of Violations",
+       y = "Frequency") +
+  geom_vline(xintercept = observed_violations, color = "red", size = 1.5) +
+  theme_classic()
+```
+
+## Conclusion
+Since the p-value is very small (0.0001), it suggests that the observed data are unlikely under the null hypothesis, indicating that Gourmet Bites' health code violation rate may be significantly higher than the citywide average.
+
+### Interpretation
+- **Null Hypothesis**: The health code violation rate for Gourmet Bites is the same as the citywide average of $$3 \%$$
+.
+- **Test Statistic**: The number of health code violations observed during inspections.
+- **Plot**: The distribution of simulated violations under the null hypothesis.
+- **p-value**: Indicates the probability of observing at least 8 violations under the null hypothesis.
+- **Conclusion**: Since p-value is small, it suggests that Gourmet Bites' violation rate is significantly higher than the baseline.
+
+# Problem 3
+
+### Null Hypothesis
+The null hypothesis $$H_0$$ is that the distribution of jurors empaneled by the judge is consistent with the county's population proportions, indicating no racial bias in jury selection.
+
+### Alternative Hypothesis
+The alternative hypothesis $$H_1$$ is that the distribution of jurors empaneled by the judge is significantly different from the county's population proportions, suggesting racial bias in jury selection.
+
+### Test Statistic
+We will use the chi-squared goodness-of-fit test as our test statistic to evaluate how well the observed distribution of jurors matches the expected distribution based on the county's population.
+
+### Expected Distribution
+The county's eligible jury population is distributed as follows:
+- Group 1: $$30 \%$$
+- Group 2: $$
+25 \%$$
+- Group 3: $$
+20 \%$$
+- Group 4: $$
+15 \%$$
+- Group 5: $$
+10 \%$$
+
+### Observed Distribution
+Over 20 trials, the observed counts for each group are:
+- Group 1: $$
+85$$
+- Group 2: $$
+56$$
+- Group 3: $$
+59$$
+- Group 4: $$
+27$$
+- Group 5: $$
+13$$
+
+### Total Jurors
+Each jury has 12 members, and there were 20 trials, so the total number of jurors is $$
+12 \times 20 = 240$$.
+
+### Chi-Squared Test
+
+To perform the chi-squared test, we first calculate the expected number of jurors for each group based on the county's population proportions.
+
+```{r}
+proportions <- c(0.30, 0.25, 0.20, 0.15, 0.10)
+total_jurors <- 240
+expected_counts <- total_jurors * proportions
+print(expected_counts)
+```
+
+Next, we calculate the chi-squared statistic using the observed and expected counts.
+
+```{r}
+observed_counts <- c(85, 56, 59, 27, 13)
+chi_squared <- sum((observed_counts - expected_counts)^2 / expected_counts)
+print(chi_squared)
+```
+
+### p-Value Calculation
+We calculate the p-value using the chi-squared distribution with $$k-1 = 5-1 = 4$$
+ degrees of freedom.
+
+```{r}
+library(stats)
+p_value <- pchisq(chi_squared, df = 4, lower.tail = FALSE)
+print(p_value)
+```
+
+### Conclusion
+If the p-value is very small (e.g., less than 0.05), it suggests that the observed distribution of jurors is significantly different from the expected distribution based on the county's population, indicating possible racial bias in jury selection.
+
+### Other Explanations and Further Investigation
+Other explanations for differences in jury composition might include random variability, differences in juror availability, or socioeconomic factors affecting juror participation. To investigate further, you could analyze additional data on juror demographics, socioeconomic status, and participation rates across different racial groups.
+
+# Problem 4
+
+#### Part A: Null Distribution
+
+1. **Load Sentences**: Load sentences from `brown_sentences.txt`.
+2. **Preprocess Text**: Remove non-letter characters, convert to uppercase, and count letter occurrences.
+3. **Calculate Chi-Squared**: Compare observed counts with expected counts based on predefined letter frequencies.
+4. **Compile Distribution**: Collect chi-squared statistics to form the null distribution.
+
+```{r}
+library(stats)
+library(ggplot2)
+sentences <- readLines("brown_sentences.txt")
+letter_frequencies <- read.csv("letter_frequencies.csv", header = TRUE)
+letter_frequencies <- letter_frequencies[, 2] / sum(letter_frequencies[, 2])
+calculate_chi_squared <- function(sentence) {
+  sentence <- gsub("[^a-zA-Z]", "", toupper(sentence))
+  observed_counts <- sapply(LETTERS, function(letter) sum(strsplit(sentence, "")[[1]] == letter))
+  expected_counts <- length(strsplit(sentence, "")[[1]]) * letter_frequencies
+  chi_squared <- sum((observed_counts - expected_counts)^2 / expected_counts)
+  return(chi_squared)
+}
+null_distribution <- sapply(sentences, calculate_chi_squared)
+df <- data.frame(
+  ChiSquared = null_distribution
+)
+ggplot(df, aes(x = ChiSquared)) +
+  geom_histogram(bins = 30, color = "black", fill = "lightblue") +
+  labs(title = "Distribution of Chi-Squared Values Across Sentences",
+       subtitle = "Histogram of Chi-Squared Statistics",
+       x = "Chi-Squared Value",
+       y = "Frequency") +
+  theme_classic()
+```
+
+## Part B: Checking for a Watermark
+Load Ten Sentences: Place the ten sentences into an R vector.
+Calculate Chi-Squared for Each Sentence: Use the same method as in Part A.
+Calculate p-Values: Compare each sentence's chi-squared statistic to the null distribution to find p-values.
+Identify the Watermarked Sentence: The sentence with the smallest p-value is likely the watermarked one.
+
+```{r}
+sentences_to_check <- c(
+  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+  "The museum's new exhibit features ancient artifacts from various civilizations around the world.",
+  "He carefully examined the document, looking for any clues that might help solve the mystery.",
+  "The students gathered in the auditorium to listen to the guest speaker's inspiring lecture.",
+  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+  "The committee reviewed the proposal and provided many points of useful feedback to improve the project's effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone's expectations."
+)
+calculate_p_value <- function(chi_squared) {
+  return(sum(null_distribution >= chi_squared) / length(null_distribution))
+}
+chi_squared_values <- sapply(sentences_to_check, calculate_chi_squared)
+p_values <- sapply(chi_squared_values, calculate_p_value)
+print(data.frame(Sentence = 1:10, p_value = round(p_values, 3)))
+watermarked_sentence_index <- which.min(p_values)
+print(paste("The watermarked sentence is likely sentence", watermarked_sentence_index))
+
+```
+### Conclusion
+The sentence with the smallest p-value is likely the one generated by the LLM with a watermark. This is because its letter frequency distribution deviates significantly from the typical English distribution, as captured by the null distribution from the Brown Corpus sentences.
