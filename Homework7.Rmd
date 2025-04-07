@@ -1,0 +1,310 @@
+---
+title: "Homework 7 - SDS315"
+author: "Adam Jose - avj423"
+date: "2025-04-06 - \n\n https://github.com/adamvj/SDS315"
+output: pdf_document
+---
+
+  
+  
+```{r setup, include=FALSE}
+# Global options
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, tidy = TRUE, fig.width=8, fig.height=6)
+```
+
+```{r}
+library(tidyverse)
+library(mosaic)
+```
+
+# Problem 1
+
+### Part A
+```{r, echo=FALSE, message= FALSE, results=FALSE}
+armfold = read.csv("armfold.csv")
+xtabs(~Sex, data=armfold)
+proptop = xtabs(~Sex + LonR_fold, data=armfold) %>%
+  prop.table()
+proptop
+```
+There are 111 females and 106 males. Approximately 23.04% of males put their left hand on top and approximately 21.67% of females put their left hand on top.
+
+### Part B
+
+23.04% - 21.67% = 1.37%. So there's a 1.37% between the two groups.
+
+### Part C
+
+```{r, results=FALSE}
+table_data <- table(armfold$Sex, armfold$LonR_fold)
+table_data
+
+result = prop.test(table_data, correct = FALSE)
+
+conf_interval <- result$conf.int
+conf_interval
+
+```
+The 95 percent confidence interval is -0.0839 to 0.1805
+
+The standard error for the difference in proportions is given by:
+
+\[
+SE(\hat{p}_1 - \hat{p}_2) = \sqrt{\frac{\hat{p}_1 (1 - \hat{p}_1)}{N_1} + \frac{\hat{p}_2 (1 - \hat{p}_2)}{N_2}}
+\]
+
+$\hat{p}_1$ is the proportion of males with left arm on top (50/106 = 0.472)
+
+$\hat{p}_2$ is the proportion of females with left arm on top (47/111 = 0.423)
+
+$N_1$ is the total number of males (106)
+
+$N_2$ is the total number of females (111)
+
+For a 95% confidence level, z* = 1.96
+Using a z-table, the z-score corresponding to an area of 0.975 is 1.96.
+
+CI = ($\hat{p}_1$ - $\hat{p}_2$) $\pm$ z* $\cdot$ SE  = (-0.084, 0.181)
+
+
+### Part D
+
+Assume that we were to take repeated random samples of undergraduate students at this university and calculate 95% confidence intervals for the difference in proportions of males and females who fold their left arm on top, then we would expect 95% of these confidence intervals to include the true difference in proportions of males and females who fold their left arm on top.
+
+Since our confidence interval (-0.084, 0.181) contains zero, we cannot firmly conclude that there is no difference between males and females in the population regarding the inclination to fold arm. The evidence is compatible with the set of possibilities from females being about 8.4 percentage points more likely to fold left arm on top to males being about 18.1 percentage points more likely to fold left arm on top.
+
+### Part E
+
+The standard error is the approximate standard deviation of the sampling distribution of the difference in proportions. It tells us how much we would expect our observed difference (in the proportion of males and females who fold their left arm on top) to vary if we were to take repeated random samples of the same size from the population. A smaller standard error indicates less expected variability among samples and therefore a more precise estimate of the true population difference.
+
+
+### Part F
+
+The sampling distribution refers to the probability distribution of a statistic, in this case, the difference in sample proportions ($\hat{p}_1 - \hat{p}_2$), if we were to repeatedly draw random samples of the same size from the population. In this context, what varies from sample to sample is the observed difference in proportions between males and females who fold their left arm on top. However, the true population proportions for males ($p_1$) and females ($p_2$) remain constant. The sampling distribution of $\hat{p}_1 - \hat{p}_2$ is approximately normal for large enough sample sizes, as justified by the Central Limit Theorem. This allows us to use the formula for the standard error of the difference in proportions to estimate how much variation we expect in $\hat{p}_1 - \hat{p}_2$ across repeated samples.
+
+### Part G
+
+The Central Limit Theorem enables us to approximate the sampling distribution of the difference in sample proportions as a normal distribution. According to this theorem, provided that independent random samples are drawn from a population, the sampling distribution of a sample statistic (e.g., a proportion, or the difference of two proportions) will be approximately normally distributed if the sample size is sufficiently large, regardless of what shape the original population distribution is. In this specific instance, even though every single arm-folded response is binary (right or left), if we are looking at the differential in proportions across many possible samples, that differential is nearly normally distributed. This approximation becomes increasingly better with larger sample sizes (females and males). The theorem enables us to employ standard errors and z-scores to create confidence intervals for our observed difference, providing us with a sound means of making statistical inferences regarding the true population difference in proportions.
+
+### Part H
+
+From this confidence interval [-0.01, 0.30], we cannot completely rule out there being no sex difference because zero is included in the interval only just. However, most of the interval is positive and so suggests males may be up to 30 percentage points more likely than females to fold left arm on top. The evidence points towards there possibly being a sex difference.
+
+### Part I
+
+Yes, the confidence interval would be different with samples because different people would be in each random sample and therefore would have different observed proportions due to sampling variability. The sample statistics (male to female ratios folding left arm on top) would naturally differ from sample to sample. But if we calculated 95% confidence intervals for a large number of random samples, we would find that roughly 95% of them would contain the true population difference in proportions. That is the correct meaning of a 95% confidence level - it is the long-run frequency with which our method of estimation estimates the true parameter.
+
+# Problem 2
+
+### Part A
+```{r, echo=FALSE, message= FALSE}
+turnout <- read.csv("turnout.csv")
+```
+
+```{r, results = FALSE}
+# Number of GOTV call recipients and non-recipients
+gotv_counts <- table(turnout$GOTV_call)
+gotv_counts
+
+# Contingency table for GOTV_call vs. voted1998
+voting_table <- table(turnout$GOTV_call, turnout$voted1998)
+voting_table
+```
+
+**Results**:
+- **GOTV call recipients**: 247 people (160 voted, 87 didn't)
+- **Non-recipients**: 10,582 people (4,701 voted, 5,881 didn't)
+
+**Proportions**:
+```{r, results = FALSE}
+prop.test(voting_table, correct = FALSE)
+```
+
+- **Recipients who voted**: 160/247 = 64.78%
+- **Non-recipients who voted**: 4,701/10,582 = 44.42%
+- **Difference**: 64.78% - 44.42% = 20.36 percentage points
+
+**95% confidence interval for difference**: (0.1432, 0.2638)
+
+### Part B
+
+#### 1. **voted1996 (Voted in 1996)**
+**Association with Treatment (`GOTV_call`):**
+```{r, results= FALSE}
+# Contingency table for GOTV_call vs. voted1996
+voted1996_table <- table(turnout$GOTV_call, turnout$voted1996)
+voted1996_table
+
+# Proportion of people who voted in 1996 by GOTV_call
+prop.test(voted1996_table, correct = FALSE)
+```
+### Results for Part B (voted1996 as a Confounder)
+
+**Association between GOTV calls and voting in 1996**:
+- **GOTV call recipients**: 71.3% (176/247) voted in 1996.
+- **Non-recipients**: 53.1% (5,617/10,582) voted in 1996.
+- **Difference in proportions**: 18.2 percentage points (95% CI: 12.5%, 23.9%).
+
+**Statistical significance**:
+- The 95% confidence interval does not include zero, and the p-value is $1.5 \times 10^{-8}$ (effectively zero), indicating strong evidence of a difference.
+
+### Interpretation
+Receiving a GOTV call is strongly associated with having voted in the 1996 election. Individuals who received a call were 12.5% to 23.9% more likely to have voted in 1996 compared to those who did not receive a call. Since voting in 1996 is also a strong predictor of voting in 1998 (as shown in earlier analyses), this variable acts as a **confounder**. The observed association between GOTV calls and 1998 voting in Part A is likely inflated because the call recipients were already more politically engaged (as evidenced by their higher 1996 voting rates).
+
+**Association with Outcome (`voted1998`):**
+```{r, results= FALSE}
+# Contingency table for voted1998 vs. voted1996
+voted1998_vs_1996 <- table(turnout$voted1998, turnout$voted1996)
+voted1998_vs_1996
+
+# Proportion who voted in 1998 by 1996 voting status
+prop.test(voted1998_vs_1996, correct = FALSE)
+```
+### Results for Association with Outcome (`voted1998`)
+
+**Proportions**:
+- **Did not vote in 1998 (`voted1998=0`)**: 65.03% (3,881/5,968) did not vote in 1996.
+- **Voted in 1998 (`voted1998=1`)**: 23.76% (1,155/4,861) did not vote in 1996.
+
+**Difference in Proportions**:
+$0.6503 - 0.2376 = 0.4127 \ \text{(41.27 percentage points)}$
+
+**95% Confidence Interval**:
+$(0.3957, 0.4297)$
+
+**Statistical Significance**:
+- Chi-squared statistic: $\chi^2 = 1834.1$
+- P-value: $p < 2.2 \times 10^{-16}$
+### Interpretation
+There is a **strong association** between voting in 1996 and 1998. Individuals who voted in 1998 were far less likely to have not voted in 1996 compared to those who did not vote in 1998. Specifically:
+- The proportion of non-voters in 1996 was **41.27 percentage points higher** among those who did not vote in 1998.
+- The confidence interval (39.57%, 42.97%) excludes zero, indicating statistical significance.
+- The extremely small p-value confirms that this difference is not due to random chance.
+
+This supports the claim that **voting in 1996 is a strong predictor of voting in 1998**, as prior voting behavior is strongly linked to future participation.
+
+
+#### 2. **AGE**
+**Association with Treatment (`GOTV_call`):**
+```{r, results= FALSE}
+# Mean age comparison: GOTV_call vs. no GOTV_call
+age_recipient <- turnout$AGE[turnout$GOTV_call == 1]
+age_nonrecipient <- turnout$AGE[turnout$GOTV_call == 0]
+
+t.test(age_recipient, age_nonrecipient)
+```
+### Results for Age Association with Treatment (`GOTV_call`)
+
+**Mean age comparison**:
+- **GOTV call recipients**: 58.3 years
+- **Non-recipients**: 49.4 years
+- **Mean difference**: 8.9 years (95% CI: 6.4, 11.4)
+
+**Statistical significance**:
+- $t = 6.96$, $p < 0.001$ (highly significant)
+
+
+### Interpretation
+GOTV call recipients are **significantly older** than non-recipients, with an average age difference of nearly 9 years. Since older individuals are generally more likely to vote (as shown in earlier analyses), age acts as a **confounder**. The observed effect of GOTV calls in Part A is partially explained by the fact that older, more vote-prone individuals were disproportionately targeted for calls. This creates a spurious association between receiving a call and voting in 1998.
+
+
+**Association with Outcome (`voted1998`):**
+```{r, results= FALSE}
+# Mean age comparison: voted1998 vs. did not vote
+age_voted <- turnout$AGE[turnout$voted1998 == 1]
+age_notvoted <- turnout$AGE[turnout$voted1998 == 0]
+
+t.test(age_voted, age_notvoted)
+```
+### Results for Age Association with Outcome (`voted1998`)  
+
+**Mean age comparison**:  
+- **Voted in 1998**: 55.4 years (mean age).  
+- **Did not vote in 1998**: 44.9 years (mean age).  
+- **Mean difference**: 10.5 years (95% confidence interval: 9.82, 11.18).  
+
+**Statistical significance**:  
+- $t = 30.24$, $p < 2.2 \times 10^{-16}$ (extremely significant).  
+
+### Interpretation  
+Older individuals are **significantly more likely to vote in 1998** compared to younger individuals. The mean age difference of 10.5 years between voters and non-voters is both statistically and substantively large, with the confidence interval excluding zero. The tiny p-value confirms this difference is not due to random chance. This strong association supports **age** as a confounder: since older individuals are more likely to vote *and* were disproportionately targeted for GOTV calls (as shown earlier), the observed effect of GOTV calls in Part A is partially explained by age differences between recipients and non-recipients.
+
+
+#### 3. **MAJORPTY (Major Party Affiliation)**
+**Association with Treatment (`GOTV_call`):**
+```{r, results= FALSE}
+# Contingency table for GOTV_call vs. MAJORPTY
+majorpty_table <- table(turnout$GOTV_call, turnout$MAJORPTY)
+
+# Proportion of major party members by GOTV_call
+prop.test(majorpty_table, correct = FALSE)
+```
+### Results for MAJORPTY Association with Treatment (`GOTV_call`)  
+**Proportions of major party members**:  
+- **GOTV call recipients**: 25.5% (prop 1 = 0.255).  
+- **Non-recipients**: 19.8% (prop 2 = 0.198).  
+- **Difference**: 5.7 percentage points (95% CI: 0.64%, 10.73%).  
+
+**Statistical significance**:  
+- $\chi^2 = 4.12$, $p = 0.042$.  
+
+### Interpretation  
+There is **moderate evidence** that GOTV call recipients are more likely to be major party members compared to non-recipients. The 95% confidence interval (0.64% to 10.73%) excludes zero, and the p-value (0.042) is below the 0.05 threshold, indicating statistical significance. While the effect size is small (5.7 percentage points), this association confirms that **MAJORPTY** acts as a confounder. Since major party affiliation is also strongly linked to voting behavior (as shown in earlier analyses), the observed effect of GOTV calls in Part A is partially explained by the fact that major party members—who are more likely to vote regardless of intervention—were disproportionately targeted for calls.
+
+
+**Association with Outcome (`voted1998`):**
+```{r, results=FALSE}
+# Contingency table for voted1998 vs. MAJORPTY
+voted1998_vs_majorpty <- table(turnout$voted1998, turnout$MAJORPTY)
+
+# Proportion who voted in 1998 by party affiliation
+prop.test(voted1998_vs_majorpty, correct = FALSE)
+```
+### Results for MAJORPTY Association with Outcome (`voted1998`)  
+**Proportions who voted in 1998**:  
+- **Major party members (MAJORPTY=1)**: 29.9% (prop 1 = 0.299).  
+- **Non-major party members (MAJORPTY=0)**: 19.8% (prop 2 = 0.198).  
+- **Difference**: 10.1 percentage points (95% CI: 8.5%, 11.7%).  
+
+**Statistical significance**:  
+- $\chi^2 = 145.17$, $p < 2.2 \times 10^{-16}$ (extremely significant).  
+
+
+### Interpretation  
+Major party members are **significantly more likely to vote in 1998** compared to non-major party members. The 10.1 percentage point difference is statistically robust, with a confidence interval excluding zero and an infinitesimal p-value. While the effect size is smaller than initially reported, this still confirms **MAJORPTY** as a confounder. The observed association between GOTV calls and voting in Part A is partially explained by the fact that major party members—who are more likely to vote regardless of intervention—were disproportionately targeted for calls. This creates a spurious link between receiving a call and voting behavior.
+
+### Conclusion
+All three variables (**voted1996**, **AGE**, **MAJORPTY**) are confounders because:
+1. They are significantly associated with receiving a GOTV call.
+2. They are strongly predictive of voting in 1998.
+
+This means the observed effect of GOTV calls in Part A is confounded by these factors. For example, older, politically engaged voters (who are more likely to vote regardless) were disproportionately targeted for calls, inflating the apparent effect of the GOTV intervention.
+
+### Part C
+
+
+To adjust for confounders (**voted1996**, **AGE**, and **MAJORPTY**), we can use a **logistic regression model** to estimate the effect of receiving a GOTV call (`GOTV_call`) on voting in 1998 (`voted1998`), while controlling for these variables. Below is the analysis:
+
+#### Logistic Regression Model
+```{r, results= FALSE}
+# Fit logistic regression model
+model <- glm(voted1998 ~ GOTV_call + voted1996 + AGE + MAJORPTY, 
+             data = turnout, family = binomial)
+
+# Summarize the model
+summary(model)
+```
+
+### Part C: Adjusted Analysis Results  
+
+#### Key Results  
+The logistic regression model shows that receiving a GOTV call significantly increases the likelihood of voting in 1998, even after controlling for confounders. The coefficient for `GOTV_call` is **0.491** with a p-value of **0.001**, indicating statistical significance. This corresponds to an odds ratio of **1.63**, meaning GOTV call recipients have **63% higher odds** of voting compared to non-recipients, after accounting for prior voting behavior (`voted1996`), age (`AGE`), and major party affiliation (`MAJORPTY`).  
+
+Among the confounders:  
+- **voted1996** is the strongest predictor, with a coefficient of **1.593** (odds ratio = **4.91**), showing that individuals who voted in 1996 are much more likely to vote in 1998.  
+- **AGE** has a positive association, with each additional year increasing the odds of voting by **2%** (odds ratio = **1.02**).  
+- **MAJORPTY** is also significant, with major party affiliation increasing the odds of voting by **38%** (odds ratio = **1.38**).  
+
+#### Interpretation  
+After adjusting for confounders, the effect of GOTV calls on voting in 1998 is smaller than the unadjusted analysis in Part A but remains statistically significant. This indicates that while confounding factors inflated the observed effect in Part A, GOTV calls still have an independent positive impact on voter turnout.
+
