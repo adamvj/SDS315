@@ -1,5 +1,5 @@
 ---
-title: "Homework 7 - SDS315"
+title: "Homework 8 - SDS315"
 author: "Adam Jose - avj423"
 date: "2025-04-014 - \n\n https://github.com/adamvj/SDS315"
 output: pdf_document
