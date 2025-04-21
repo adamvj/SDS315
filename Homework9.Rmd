@@ -1,0 +1,348 @@
+---
+title: "Homework 9 - SDS315"
+author: "Adam Jose - avj423"
+date: "2025-04-18 \n\n https://github.com/adamvj/SDS315"
+output: html_document
+---
+  
+
+```{r setup, include=FALSE}
+# Global options
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, tidy = TRUE, fig.width=8, fig.height=6)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(RColorBrewer)
+library(mosaic)
+library(broom)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(knitr)
+
+```
+
+# Problem 1
+### Part A
+
+```{r, fig.height=10, fig.width=10}
+solder = read.csv("solder.csv")
+ggplot(solder) +
+  geom_col(aes(x= Opening, y= skips))+
+  labs(title = "Distribution of Solder Skips by Opening Size", x = "Opening Size", y = "Number of Solder Skips", caption = "Boxplot showing the distribution of solder skips for each solder gun opening size.")
+
+```
+\newpage
+```{r, fig.height=10, fig.width=10}
+ggplot(solder) +
+  geom_col(aes(x= Solder, y= skips))+
+  labs(title = "Distribution of Solder Skips by Thickness", x = "Thickness", y = "Number of Solder Skips", caption = "Boxplot showing the distribution of solder skips for each solder thickness.")
+```
+
+### Part B
+
+```{r, message=FALSE}
+
+library(broom)
+library(knitr)
+library(kableExtra)
+
+# Fit your model
+model <- lm(skips ~ Opening + Solder + Opening:Solder, data = solder)
+
+# Get tidy results with confidence intervals
+tab <- tidy(model, conf.int = TRUE)
+
+# Optional: Clean up and round numbers
+tab <- tab %>%
+  mutate(across(where(is.numeric), ~round(., 3))) %>%
+  select(term, estimate, conf.low, conf.high) %>%
+  rename(
+    Term = term,
+    Estimate = estimate,
+    `95% CI Lower` = conf.low,
+    `95% CI Upper` = conf.high
+  )
+
+# Pretty table
+kable(tab, caption = "Regression Coefficients with 95% Confidence Intervals")
+```
+
+### Part C
+
+---
+
+**(Intercept):**  
+The intercept (0.393) is the estimated average number of skips when the Opening is at its reference level and the Solder is "Thick". It represents the baseline number of skips for this combination. The confidence interval (−0.628, 1.415) includes zero, so this baseline is not statistically distinguishable from zero.
+
+---
+
+**OpeningM:**  
+The coefficient for OpeningM (2.407) estimates that, when using a "Medium" opening (vs. the reference), and with thick solder, the number of skips increases by about 2.41 on average. The 95% CI (0.962, 3.851) does not include zero, so this effect is significant.
+
+---
+
+**OpeningS:**  
+The coefficient for OpeningS (5.127) estimates that, when using a "Small" opening (vs. "Large"), and with thick solder, the number of skips increases by about 5.13 on average. The 95% CI (3.682, 6.571) does not include zero, indicating a significant effect.
+
+---
+
+**SolderThin:**  
+The coefficient for SolderThin (2.280) estimates that, when using thin solder (vs. thick) and the reference opening size ("Large"), the number of skips increases by about 2.28 on average. The 95% CI (0.836, 3.724) does not include zero, so this effect is significant.
+
+---
+
+**OpeningM:SolderThin:**  
+The interaction term OpeningM:SolderThin (−0.740) estimates the *additional* effect of using both a medium opening and thin solder, above and beyond the sum of their separate effects. In other words, for boards with a medium opening and thin solder, the number of skips is about 0.74 fewer than would be expected if the effects of medium opening and thin solder were simply additive. The confidence interval (−2.782, 1.302) includes zero, so this interaction is not statistically significant.
+
+---
+
+**OpeningS:SolderThin:**  
+The interaction term OpeningS:SolderThin (9.653) estimates the *additional* effect of using both a small opening and thin solder, above and beyond the sum of their separate effects. For boards with a small opening and thin solder, the number of skips is about 9.65 more than would be expected if the effects were simply additive. The 95% CI (7.611, 11.696) does not include zero, so this interaction is significant.
+
+---
+
+# Problem 2
+
+### Part A
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+groceries = read.csv("groceries.csv")
+# Suppose your data is in a data frame called 'groceries'
+# Calculate average price per store
+avg_price_per_store <- groceries %>%
+  group_by(Store) %>%
+  summarize(avg_price = mean(Price, na.rm = TRUE)) %>%
+  arrange(avg_price)
+
+# Plot
+ggplot(avg_price_per_store, aes(x = reorder(Store, avg_price), y = avg_price)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Average Product Price by Store",
+    x = "Store",
+    y = "Average Price (USD)",
+    caption = "Bar graph showing the average price of products sold at each store."
+  ) +
+  theme_minimal()
+
+```
+
+### Part B
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Suppose your data is in a data frame called 'groceries'
+# Count number of stores selling each product
+product_store_counts <- groceries %>%
+  group_by(Product) %>%
+  summarize(stores_selling = n_distinct(Store)) %>%
+  arrange(stores_selling)
+
+# Plot
+ggplot(product_store_counts, aes(x = reorder(Product, stores_selling), y = stores_selling)) +
+  geom_col(fill = "darkorange") +
+  coord_flip() +
+  labs(
+    title = "Number of Stores Selling Each Product",
+    x = "Product",
+    y = "Number of Stores",
+    caption = "Bar graph showing, for each product, how many stores in the sample carry it."
+  ) +
+  theme_minimal()
+
+```
+
+### Part C
+
+```{r}
+model <- lm(Price ~ Product + Type, data = groceries)
+summary(model)
+confint(model)
+```
+Compared with ordinary grocery stores (like Albertsons, HEB, or Krogers), convenience stores charge somewhere between $0.41 and \$0.92 dollars more for the same product.
+
+### Part D
+
+```{r}
+model <- lm(Price ~ Product + Store, data = groceries)
+summary(model)
+
+# Create a data frame with the desired values
+library(knitr)
+library(kableExtra)
+
+store_table <- data.frame(
+  Store = c("Walmart", "Kroger Fresh Fare", "Whole Foods", "Wheatsville Food Co-Op"),
+  Coefficient = c(-0.99255, -0.90178, 0.36416, 0.29029),
+  `p-value` = c("<0.001", "<0.001", "0.040", "0.105"),
+  Interpretation = c(
+    "Charges $0.99 less on average",
+    "Charges $0.90 less on average",
+    "Charges $0.36 more on average",
+    "Charges $0.29 more on average"
+  )
+)
+
+kable(store_table, caption = "Store Price Effects Compared to the Reference Store")
+
+```
+
+The two stores seem to charge the lowest prices when comparing the same product are Walmart and Kroger Fresh Fare. The two stores seem to charge the highest prices when comparing the same product are Whole Foods and Wheatsville Food Co-Op.
+
+### Part E
+
+Central Market and HEB charge very similar prices for the same product.
+
+The model shows that Central Market charges only about 7 cents more per product than HEB, on average, after controlling for product differences. This difference is small compared to the price differences among other stores (e.g., Walmart is about 99 cents cheaper than the reference, Whole Foods is about 36 cents more expensive). Therefore, the data suggest that Central Market’s reputation for higher prices is not due to charging more for the same product, but may reflect differences in product assortment or other factors.
+
+Numerical evidence:
+
+HEB coefficient: −0.64596
+
+Central Market coefficient: −0.57339
+
+Difference: $0.07 (Central Market is 7 cents more expensive for the same product, on average)
+
+This is much smaller than the differences between other stores.
+
+### Part F
+
+```{r}
+groceries <- groceries %>%
+  mutate(Income10K = Income / 10000)
+model <- lm(Price ~ Product + Income10K, data = groceries)
+summary(model)
+
+```
+
+```{r}
+library(lm.beta)
+model_std <- lm(Price ~ Product + Income10K, data = groceries)
+lm.beta(model_std)
+
+```
+
+## Answer to Problem 2F: Income and Grocery Prices  
+
+### **1. Do consumers in poorer ZIP codes pay more or less for the same product?**  
+**Answer:**  
+Consumers in poorer ZIP codes (lower income) pay **more** for the same product, on average.  
+
+**Evidence:**  
+- The coefficient for `Income10K` (income in \$10,000 units) is **−0.014** (*p* = 0.144).  
+- A negative coefficient means that as ZIP code income increases, prices decrease for the same product.  
+- Thus, lower-income ZIP codes (smaller `Income10K`) are associated with higher prices.  
+
+---
+
+### **2. Standardized Effect Size**  
+**Answer:**  
+A one-standard deviation increase in the income of a ZIP code seems to be associated with a **−0.03 standard-deviation decrease** in the price that consumers in that ZIP code expect to pay for the same product.  
+
+**Calculation:**  
+- The **standardized regression coefficient** for `Income10K` is **−0.0316** (from the provided output).  
+- This means a one-standard-deviation increase in ZIP code income is associated with a **−0.03 standard-deviation decrease** in price.  
+
+---
+
+- The effect of income is **not statistically significant** (*p* = 0.144), so we cannot rule out random chance as an explanation.  
+- The direction suggests a weak trend: wealthier areas pay slightly less for the same product, but this trend is not robust.  
+- The standardized effect size is **very small** (−0.03 SD), indicating income explains minimal variation in prices after controlling for product differences.  
+
+---
+
+**Conclusion:**  
+While the data hint that poorer ZIP codes pay slightly more for the same product, this relationship is not statistically significant, and the effect size is negligible in practical terms. Price differences are better explained by product assortment or store type than by ZIP code income.
+
+
+# Problem 3
+
+### Part A
+
+Answer: TRUE
+
+Evidence:
+
+Figure A1 shows a clear positive linear relationship between % minority and FAIR policies per 100 housing units.
+
+The simple regression (model_A) gives a minority coefficient of 0.014 (p < 0.001) with a 95% CI of (0.009, 0.018).
+
+The R² is 0.52, indicating that about half the variation in FAIR policies is explained by % minority alone.
+
+Conclusion:
+ZIP codes with a higher percentage of minority residents do tend to have more FAIR policies per 100 housing units.
+
+### Part B
+
+Answer: UNDECIDABLE/AMBIGUOUS
+
+Evidence:
+
+There is no regression model or figure provided that includes an interaction term between minority percentage and age of housing stock.
+
+Figure B1 and the regression of minority ~ age (model_B) show only a weak, non-significant association (p = 0.125) between age and minority percentage, and do not address interaction effects on FAIR policies.
+
+What’s Missing:
+To decide, we would need a model of the form policies ~ minority * age + ... or a figure showing how the minority–policy relationship changes with housing age.
+
+### Part C
+
+Answer: FALSE
+
+Evidence:
+
+Figure C1 and the regression with interaction (model_C) show:
+
+The coefficient for minority is 0.01 (p = 0.015).
+
+The interaction term minority:fire_riskLow is −0.001 (p = 0.839), not statistically significant.
+
+This means the slope for minority % is about the same in both high- and low-fire-risk ZIP codes.
+
+If anything, the relationship is not significantly different between fire risk groups.
+
+Correction:
+The relationship is not stronger in high-fire-risk ZIP codes; it is about the same in both groups.
+
+### Part D
+
+Answer: FALSE
+
+Evidence:
+
+Compare two models:
+
+model_D1: policies ~ minority — the coefficient for minority is 0.014 (p < 0.001).
+
+model_D2: policies ~ minority + income — the coefficient for minority is 0.01 (p = 0.002).
+
+The minority effect remains positive and significant after controlling for income (CI: 0.004 to 0.015).
+
+Income is also significant (coefficient = −0.074, p = 0.041), but does not "explain away" the association.
+
+Correction:
+Income reduces but does not eliminate the association between minority percentage and FAIR policy uptake.
+
+### Part E
+
+Answer: TRUE
+
+Evidence:
+
+The multiple regression (model_E) includes controls for income, fire, and age.
+
+The coefficient for minority is 0.008 (p = 0.006), with a 95% CI of (0.003, 0.014).
+
+This association remains statistically significant after adjusting for all listed controls.
+
+Conclusion:
+There is still a significant association between minority percentage and FAIR policy uptake, even after controlling for income, fire risk, and housing age.
